@@ -7,7 +7,7 @@ setup(name='vse',
       description='Configurable visual search engine based on the OpenCV',
       url='https://github.com/mkpaszkiewicz/vse',
       download_url='https://github.com/mkpaszkiewicz/vse/tarball/v0.1.0',
-      packages=['vse, bin'],
+      packages=['vse', 'bin'],
       keywords=['visual', 'search', 'engine', 'computer', 'vision'],
       install_requires=[
           'NumPy',
