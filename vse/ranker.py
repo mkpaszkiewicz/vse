@@ -5,8 +5,20 @@ from vse.utils import normalize
 
 __all__ = ['Ranker',
            'SimpleRanker',
-           'TFIDFRanker'
+           'WeightingRanker'
            ]
+
+
+def tfidf(hist, freq_hist):
+    """Term frequency - inverse document frequency scoring."""
+    return [n * -log(n_freq) for n, n_freq in zip(hist, freq_hist)]
+
+
+def log(n):
+    if n == 0:
+        return 0
+    else:
+        return math.log(n)
 
 
 class Ranker(metaclass=ABCMeta):
@@ -51,15 +63,3 @@ class WeightingRanker(Ranker):
             diff_ratio = self.hist_comparator.compare(weighted_item_hist, weighted_query_hist)
             results.append((image_id, diff_ratio))
         return self._n_best_results(results, n)
-
-
-def tfidf(hist, freq_hist):
-    """Term frequency - inverse document frequency scoring."""
-    return [n * -log(n_freq) for n, n_freq in zip(hist, freq_hist)]
-
-
-def log(n):
-    if n == 0:
-        return 0
-    else:
-        return math.log(n)
