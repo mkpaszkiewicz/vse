@@ -1,92 +1,114 @@
 import abc
-import os
-
-from vse.utils import *
 from vse.error import *
 
 
-__all__ = ['Index',
-           'ForwardIndex',
-           'InvertedIndex'
-           ]
-
-
 class Index:
-    def __init__(self, dir_path, override=False, remove_on_exit=False):
-        """All indexes base class. Removes existing index directory.
-        Registers exit function, which will delete index directory on termination"""
-        self._dir_path = complete_path(dir_path)
-        if override:
-            rmdir_if_exist(dir_path)
-            os.makedirs(dir_path)
-        if remove_on_exit:
-            import atexit
-            atexit.register(rmdir_if_exist, dir_path)
+    def __init__(self, ranker):
+        self.ranker = ranker
+        self.vw_freq = []
 
     @abc.abstractmethod
-    def add(self, filename, hist, image):
+    def find(self, query_hist, n):
+        pass
+
+    def __setitem__(self, image_id, hist):
+        self._add(image_id, hist)
+        self._update_freq_after_addition(hist)
+
+    @abc.abstractmethod
+    def _add(self, image_id, hist):
+        pass
+
+    def _update_freq_after_addition(self, hist):
+        if not self.vw_freq:
+            self.vw_freq = hist.copy()
+        self.vw_freq = [(n_freq * (len(self) - 1) + n) / len(self) for n, n_freq in zip(hist, self.vw_freq)]
+
+    def __delitem__(self, image_id):
+        hist = self[image_id]
+        self._remove(image_id)
+        self._update_freq_after_deletion(hist)
+
+    @abc.abstractmethod
+    def _remove(self, image_id):
+        pass
+
+    def _update_freq_after_deletion(self, hist):
+        if len(self) == 0:
+            self.vw_freq = []
+        self.vw_freq = [(n_freq * (len(self) + 1) - n) / len(self) for n, n_freq in zip(hist, self.vw_freq)]
+
+    @abc.abstractmethod
+    def __getitem__(self, image_id):
         pass
 
     @abc.abstractmethod
-    def get(self, query_hist):
-        pass
-
-    @abc.abstractmethod
-    def remove(self, filename):
+    def __len__(self):
         pass
 
 
 class ForwardIndex(Index):
-    def __init__(self, dir_path='./index'):
-        Index.__init__(self, dir_path)
-        self._index = {}
+    def __init__(self, ranker):
+        Index.__init__(self, ranker)
+        self.index = {}
 
-    def add(self, filename, hist, image):
-        if filename in self._index.keys():
-            raise DuplicatedImageError(filename)
-        self._index[filename] = hist
+    def find(self, query_hist, n):
+        return self.ranker.rank(query_hist, self.index.items(), n, self.vw_freq)
 
-    def get(self, query_hist):
-        return self._index.items()
+    def _add(self, image_id, hist):
+        if image_id in self.index:
+            raise DuplicatedImageError(image_id)
+        self.index[image_id] = hist
 
-    def remove(self, filename):
-        if filename not in self._index.keys():
-            raise NoImageError(filename)
-        else:
-            del self._index[filename]
+    def _remove(self, image_id):
+        if image_id not in self.index:
+            raise NoImageError(image_id)
+        del self.index[image_id]
+
+    def __getitem__(self, image_id):
+        return self.index[image_id]
 
     def __len__(self):
-        return len(self._index)
+        return len(self.index)
 
 
 class InvertedIndex(Index):
-    def __init__(self, vw_amount, dir_path='./index', cutoff=2.0):
-        Index.__init__(self, dir_path)
-        self._index = [{} for i in range(vw_amount)]
-        self._cutoff = cutoff
+    def __init__(self, ranker, recognized_visual_words, cutoff=2.0):
+        Index.__init__(self, ranker)
+        self.index = [{} for i in range(recognized_visual_words)]
+        self.cutoff = cutoff / recognized_visual_words
 
-    def add(self, filename, hist, image):
-        for i, vw in enumerate(hist):
-            if vw > self._cutoff / len(hist):
-                if filename in self._index[i].keys():
-                    raise DuplicatedImageError(filename)
-                self._index[i][filename] = hist
+    def find(self, query_hist, n):
+        return self.ranker.rank(query_hist, self._items(query_hist), n, self.vw_freq)
 
-    def get(self, query_hist):
-        results = []
-        for i, vw in enumerate(query_hist):
-            if vw > self._cutoff / len(query_hist):
-                results.extend(self._index[i].items())
-        return dict(results).items()
+    def _add(self, image_id, hist):
+        for visual_word_freq, subindex in zip(hist, self.index):
+            if visual_word_freq > self.cutoff:
+                if image_id in subindex:
+                    raise DuplicatedImageError(image_id)
+                subindex[image_id] = hist
 
-    def remove(self, filename):
+    def _remove(self, image_id):
         found = False
-        for i, vw_dict in enumerate(self._index):
-            if filename in vw_dict.keys():
+        for subindex in self.index:
+            if image_id in subindex:
                 found = True
-                del self._index[i][filename]
+                del subindex[image_id]
         if not found:
-            raise NoImageError(filename)
+            raise NoImageError(image_id)
+
+    def _items(self, query_hist):
+        results = {}
+        for visual_word_freq, subindex in zip(query_hist, self.index):
+            if visual_word_freq > self.cutoff:
+                results.update(subindex)
+        return results.items()
+
+    def __getitem__(self, image_id):
+        for subindex in self.index:
+            if image_id in subindex:
+                return subindex[image_id]
+        raise KeyError(image_id)
 
     def __len__(self):
-        return len(set(key for dic in self._index for key in dic.keys()))
+        return len(set(filename for subindex in self.index for filename in subindex.keys()))

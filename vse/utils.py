@@ -74,3 +74,8 @@ def save(filename, data, protocol=pickle.HIGHEST_PROTOCOL):
     """Saves data to file using pickle."""
     with open(filename, 'wb') as file:
         pickle.dump(data, file, protocol)
+
+
+def normalize(hist):
+    """Normalizes histogram by casting values to [0, 1]."""
+    return [val / sum(hist) for val in hist]

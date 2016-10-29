@@ -1,6 +1,7 @@
-import heapq
 import math
+import heapq
 from abc import ABCMeta, abstractmethod
+from vse.utils import normalize
 
 __all__ = ['Ranker',
            'SimpleRanker',
@@ -13,62 +14,52 @@ class Ranker(metaclass=ABCMeta):
         self.hist_comparator = hist_comparator
 
     @abstractmethod
-    def rank(self, query_hist, image_index, n):
-        """Ranks images in index by similarity to query_hist. Returns list of tuples:
-        (ratio, filename) and also boolean value of ratio direction. If direction is true
-        then the higher ratio the more accuracy match."""
+    def rank(self, query_hist, items, n, freq_vector):
+        """Ranks index items by similarity to query_hist. Returns list of tuples: (image_id, diff_ratio)."""
         pass
 
-    def update(self, image_index):
-        """Invoke after image index has changed. Ranker has to update its own parameters"""
-        pass
+    def _n_best_results(self, results, n):
+        if self.hist_comparator.REVERSED:
+            return heapq.nlargest(n, results, key=lambda tup: tup[1])
+        else:
+            return heapq.nsmallest(n, results, key=lambda tup: tup[1])
 
 
 class SimpleRanker(Ranker):
     def __init__(self, hist_comparator):
         Ranker.__init__(self, hist_comparator)
 
-    def rank(self, query_hist, image_index, n):
+    def rank(self, query_hist, items, n, freq_vector=None):
         results = []
-        for filename, hist in image_index.get(query_hist):
+        for image_id, hist in items:
             diff_ratio = self.hist_comparator.compare(hist, query_hist)
-            results.append((diff_ratio, filename))
-        if self.hist_comparator.REVERSED:
-            return heapq.nlargest(n, results, key=lambda tup: tup[0])
-        else:
-            return heapq.nsmallest(n, results, key=lambda tup: tup[0])
+            results.append((image_id, diff_ratio))
+        return self._n_best_results(results, n)
 
 
-class TFIDFRanker(Ranker):
-    def __init__(self, hist_comparator):
+class WeightingRanker(Ranker):
+    def __init__(self, hist_comparator, query_weight=tfidf, item_weight=tfidf):
         Ranker.__init__(self, hist_comparator)
-        self.tfidf_vector = []
+        self.query_weight = query_weight
+        self.item_weight = item_weight
 
-    def update(self, image_index):
-        self.tfidf_vector = [sum(x) for x in zip(*image_index.values())]
-        self.tfidf_vector = self._normalize(self.tfidf_vector)
-
-    def rank(self, query_hist, image_index, n):
+    def rank(self, query_hist, items, n, freq_vector):
         results = []
-        for filename, hist in image_index.get():
-            diff_ratio = self.hist_comparator(self._weight(hist), query_hist)
-            results.append((diff_ratio, filename))
-        if self.hist_comparator.REVERSED:
-            return heapq.nlargest(n, results, key=lambda tup: tup[0])
-        else:
-            return heapq.nsmallest(n, results, key=lambda tup: tup[0])
+        weighted_query_hist = normalize(self.query_weight(query_hist))
+        for image_id, hist in items:
+            weighted_item_hist = normalize(self.item_weight(hist))
+            diff_ratio = self.hist_comparator.compare(weighted_item_hist, weighted_query_hist)
+            results.append((image_id, diff_ratio))
+        return self._n_best_results(results, n)
 
-    def _weight(self, hist):
-        weighted_hist = hist.copy()
-        for i, val in enumerate(hist):
-            if self.tfidf_vector[i] != 0:
-                weighted_hist[i] = -val * math.log(self.tfidf_vector[i], 10)
 
-        return self._normalize(weighted_hist)
+def tfidf(hist, freq_hist):
+    """Term frequency - inverse document frequency scoring."""
+    return [n * -log(n_freq) for n, n_freq in zip(hist, freq_hist)]
 
-    def _normalize(self, hist):
-        hist_sum = sum(hist)
-        norm_hist = hist.copy()
-        for i, val in enumerate(hist):
-            norm_hist[i] = hist[i] / hist_sum
-        return norm_hist
+
+def log(n):
+    if n == 0:
+        return 0
+    else:
+        return math.log(n)

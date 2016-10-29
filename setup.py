@@ -1,11 +1,13 @@
 from setuptools import setup
 
 setup(name='vse',
-      version='1.0',
+      version='0.1',
       author='Marcin K. Paszkiewicz',
       author_email='mkpaszkiewicz@gmail.com',
       description='Configurable visual search engine based on the OpenCV',
-      packages=['vse', 'tests'],
+      url='https://github.com/mkpaszkiewicz/vse',
+      packages=['vse'],
+      keywords=['visual', 'search', 'engine', 'computer', 'vision'],
       install_requires=[
           'NumPy',
           'scipy',
