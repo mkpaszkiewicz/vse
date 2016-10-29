@@ -78,4 +78,4 @@ def save(filename, data, protocol=pickle.HIGHEST_PROTOCOL):
 
 def normalize(hist):
     """Normalizes histogram by casting values to [0, 1]."""
-    return [val / sum(hist) for val in hist]
+    return numpy.array([val / sum(hist) for val in hist], dtype=numpy.float32)

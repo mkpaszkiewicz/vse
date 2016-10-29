@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='vse',
-      version='0.1',
+      version='0.1.0',
       author='Marcin K. Paszkiewicz',
       author_email='mkpaszkiewicz@gmail.com',
       description='Configurable visual search engine based on the OpenCV',

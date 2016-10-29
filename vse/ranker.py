@@ -57,9 +57,9 @@ class WeightingRanker(Ranker):
 
     def rank(self, query_hist, items, n, freq_vector):
         results = []
-        weighted_query_hist = normalize(self.query_weight(query_hist))
+        weighted_query_hist = normalize(self.query_weight(query_hist, freq_vector))
         for image_id, hist in items:
-            weighted_item_hist = normalize(self.item_weight(hist))
+            weighted_item_hist = normalize(self.item_weight(hist, freq_vector))
             diff_ratio = self.hist_comparator.compare(weighted_item_hist, weighted_query_hist)
             results.append((image_id, diff_ratio))
         return self._n_best_results(results, n)
