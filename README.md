@@ -23,7 +23,7 @@ OpenCV is not included in Anaconda’s regular list of packages, so you need to 
 After all requirements are satisfied you can install **vse** by running:
 
 ```
-$ python3 setup.py install
+$ pip install vse
 ```
 
 ### Author
