@@ -1,12 +1,12 @@
 from setuptools import setup
 
 setup(name='vse',
-      version='0.1.0',
+      version='0.1.1',
       author='Marcin K. Paszkiewicz',
       author_email='mkpaszkiewicz@gmail.com',
       description='Configurable visual search engine based on the OpenCV',
       url='https://github.com/mkpaszkiewicz/vse',
-      download_url='https://github.com/mkpaszkiewicz/vse/tarball/0.1.0',
+      download_url='https://github.com/mkpaszkiewicz/vse/tarball/0.1.1',
       packages=['vse', 'bin'],
       keywords=['visual', 'search', 'engine', 'computer', 'vision'],
       install_requires=[

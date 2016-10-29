@@ -13,7 +13,7 @@ from vse.ranker import SimpleRanker
 from vse.comparator import Intersection
 from vse.utils import *
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 
 def create_vse(vocabulary_path):
