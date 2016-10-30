@@ -81,6 +81,13 @@ class InvertedIndex(Index):
     def find(self, query_hist, n):
         return self.ranker.rank(query_hist, self._items(query_hist), n, self.vw_freq)
 
+    def _items(self, query_hist):
+        results = {}
+        for visual_word_freq, subindex in zip(query_hist, self.index):
+            if visual_word_freq > self.cutoff:
+                results.update(subindex)
+        return results.items()
+
     def _add(self, image_id, hist):
         for visual_word_freq, subindex in zip(hist, self.index):
             if visual_word_freq > self.cutoff:
@@ -97,13 +104,6 @@ class InvertedIndex(Index):
         if not found:
             raise NoImageError(image_id)
 
-    def _items(self, query_hist):
-        results = {}
-        for visual_word_freq, subindex in zip(query_hist, self.index):
-            if visual_word_freq > self.cutoff:
-                results.update(subindex)
-        return results.items()
-
     def __getitem__(self, image_id):
         for subindex in self.index:
             if image_id in subindex:
@@ -111,4 +111,4 @@ class InvertedIndex(Index):
         raise KeyError(image_id)
 
     def __len__(self):
-        return len(set(filename for subindex in self.index for filename in subindex.keys()))
+        return len(set(image_id for subindex in self.index for image_id in subindex))

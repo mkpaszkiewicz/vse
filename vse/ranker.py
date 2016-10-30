@@ -1,5 +1,6 @@
 import math
 import heapq
+import operator
 from abc import ABCMeta, abstractmethod
 from vse.utils import normalize
 
@@ -32,9 +33,10 @@ class Ranker(metaclass=ABCMeta):
 
     def _n_best_results(self, results, n):
         if self.hist_comparator.REVERSED:
-            return heapq.nlargest(n, results, key=lambda tup: tup[1])
+            function = heapq.nlargest
         else:
-            return heapq.nsmallest(n, results, key=lambda tup: tup[1])
+            function = heapq.nsmallest
+        return function(n, results, key=operator.itemgetter(1))
 
 
 class SimpleRanker(Ranker):
@@ -42,10 +44,7 @@ class SimpleRanker(Ranker):
         Ranker.__init__(self, hist_comparator)
 
     def rank(self, query_hist, items, n, freq_vector=None):
-        results = []
-        for image_id, hist in items:
-            diff_ratio = self.hist_comparator.compare(hist, query_hist)
-            results.append((image_id, diff_ratio))
+        results = [(image_id, self.hist_comparator.compare(hist, query_hist)) for image_id, hist in items]
         return self._n_best_results(results, n)
 
 

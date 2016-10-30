@@ -1,6 +1,5 @@
 import cv2
 import numpy
-from scipy.spatial import distance as dist
 from abc import ABCMeta, abstractmethod
 
 
@@ -13,8 +12,6 @@ __all__ = ['HistComparator',
            'ChiSquaredAlt',
            'KullbackLeibler',
            'Euclidean',
-           'CityBlock',
-           'Chebyshev',
            'CosineAngle',
            ]
 
@@ -69,17 +66,7 @@ class KullbackLeibler(HistComparator):
 
 class Euclidean(HistComparator):
     def compare(self, h1, h2):
-        return dist.euclidean(h1, h2)
-
-
-class CityBlock(HistComparator):
-    def compare(self, h1, h2):
-        return dist.cityblock(h1, h2)
-
-
-class Chebyshev(HistComparator):
-    def compare(self, h1, h2):
-        return dist.chebyshev(h1, h2)
+        return numpy.linalg.norm(h1 - h2)
 
 
 class CosineAngle(HistComparator):
