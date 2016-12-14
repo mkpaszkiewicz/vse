@@ -6,4 +6,4 @@ from vse.index import *
 from vse.ranker import *
 from vse.utils import *
 
-__version__ = '0.1.3'
+__version__ = '0.1.4'

@@ -3,10 +3,10 @@ vse
 
 #### Description
 
-**vse** is a [Python](python.org) package containing configurable visual search engine based on [OpenCV](www.opencv.org).
+**vse** is a [Python](https://www.python.org) package containing configurable visual search engine based on [OpenCV](http://www.opencv.org).
 
 #### Requirements
-Package requires [OpenCV](www.opencv.org). To install it I highly recommend using dependency and environment manager - [Anaconda](https://www.continuum.io/).
+Package requires [OpenCV](http://www.opencv.org). To install it I highly recommend using dependency and environment manager - [Anaconda](https://www.continuum.io/).
 
 Run below commands in terminal:
 ```

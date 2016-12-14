@@ -14,10 +14,10 @@ from vse.comparator import Intersection
 from vse.utils import *
 
 
-def create_vse(vocabulary_path):
+def create_vse(vocabulary_path, recognized_visual_words=100):
     """Create visual search engine with default configuration."""
     ranker = SimpleRanker(hist_comparator=Intersection())
-    index = InvertedIndex(ranker=ranker, recognized_visual_words=100)
+    index = InvertedIndex(ranker=ranker, recognized_visual_words=recognized_visual_words)
     bovw = BagOfVisualWords(extractor=cv2.xfeatures2d.SIFT_create(),
                             matcher=cv2.BFMatcher(normType=cv2.NORM_L2),
                             vocabulary=load(vocabulary_path))

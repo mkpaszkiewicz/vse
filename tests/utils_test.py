@@ -72,30 +72,30 @@ class UtilityTest(unittest.TestCase):
         self.assertEqual(converted_img, converted_image_mock)
 
     @patch('vse.utils.load_image')
-    def test_should_get_images_generator(self, mock_load_image):
+    def test_should_get_images_generator(self, load_image_mock):
         paths = ['dir/filename1/', 'dir/filename2/']
         for i, image in enumerate(load_images(paths)):
-            mock_load_image.assert_called_with(paths[i])
+            load_image_mock.assert_called_with(paths[i])
 
     @patch('vse.utils.shutil')
-    def test_should_remove_directory(self, mock_shutil):
+    def test_should_remove_directory(self, shutil_mock):
         rmdir_if_exist('dir/filename/')
-        mock_shutil.rmtree.assert_called_with('dir/filename/')
+        shutil_mock.rmtree.assert_called_with('dir/filename/')
 
     @patch('vse.utils.shutil')
-    def test_should_not_remove_non_existing_directory(self, mock_shutil):
+    def test_should_not_remove_non_existing_directory(self, shutil_mock):
         exc = OSError()
         exc.errno = errno.ENOENT
-        mock_shutil.rmtree.side_effect = exc
+        shutil_mock.rmtree.side_effect = exc
 
         rmdir_if_exist('dir/filename/')
-        mock_shutil.rmtree.assert_called_with('dir/filename/')
+        shutil_mock.rmtree.assert_called_with('dir/filename/')
 
     @patch('vse.utils.shutil')
-    def test_should_fail_removing_broken_directory(self, mock_shutil):
-        mock_shutil.rmtree.side_effect = OSError
+    def test_should_fail_removing_broken_directory(self, shutil_mock):
+        shutil_mock.rmtree.side_effect = OSError
         self.assertRaises(OSError, rmdir_if_exist, 'dir/filename/')
-        mock_shutil.rmtree.assert_called_with('dir/filename/')
+        shutil_mock.rmtree.assert_called_with('dir/filename/')
 
     def test_should_complete_dir_path(self):
         path = complete_path('./example/path')
@@ -106,24 +106,24 @@ class UtilityTest(unittest.TestCase):
         self.assertEqual(path, './example/path/')
 
     @patch('vse.utils.pickle')
-    def test_should_load_data_from_file(self, mock_pickle):
-        with patch('builtins.open', mock_open()) as mock_file:
+    def test_should_load_data_from_file(self, pickle_mock):
+        with patch('builtins.open', mock_open()) as file_mock:
             load('dir/filename/')
-            mock_file.assert_called_with('dir/filename/', 'rb')
-            mock_pickle.load.assert_called_with(mock_file())
+            file_mock.assert_called_with('dir/filename/', 'rb')
+            pickle_mock.load.assert_called_with(file_mock())
 
     @patch('vse.utils.pickle')
-    def test_should_save_data_to_file_using_highest_protocol(self, mock_pickle):
+    def test_should_save_data_to_file_using_highest_protocol(self, pickle_mock):
         data = 'data'
-        with patch('builtins.open', mock_open(read_data=data)) as mock_file:
+        with patch('builtins.open', mock_open(read_data=data)) as file_mock:
             save('dir/filename/', data)
-            mock_file.assert_called_with('dir/filename/', 'wb')
-            mock_pickle.dump.assert_called_with(data, mock_file(), pickle.HIGHEST_PROTOCOL)
+            file_mock.assert_called_with('dir/filename/', 'wb')
+            pickle_mock.dump.assert_called_with(data, file_mock(), pickle.HIGHEST_PROTOCOL)
 
     @patch('vse.utils.pickle')
-    def test_should_save_data_to_file_using_default_protocol(self, mock_pickle):
+    def test_should_save_data_to_file_using_default_protocol(self, pickle_mock):
         data = 'data'
-        with patch('builtins.open', mock_open(read_data=data)) as mock_file:
+        with patch('builtins.open', mock_open(read_data=data)) as file_mock:
             save('dir/filename/', data, pickle.DEFAULT_PROTOCOL)
-            mock_file.assert_called_with('dir/filename/', 'wb')
-            mock_pickle.dump.assert_called_with(data, mock_file(), pickle.DEFAULT_PROTOCOL)
+            file_mock.assert_called_with('dir/filename/', 'wb')
+            pickle_mock.dump.assert_called_with(data, file_mock(), pickle.DEFAULT_PROTOCOL)

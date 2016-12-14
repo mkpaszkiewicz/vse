@@ -22,7 +22,8 @@ class Index:
     def _update_freq_after_addition(self, hist):
         if not self.vw_freq:
             self.vw_freq = hist.copy()
-        self.vw_freq = [(n_freq * (len(self) - 1) + n) / len(self) for n, n_freq in zip(hist, self.vw_freq)]
+        index_size = len(self)
+        self.vw_freq = [(n_freq * (index_size - 1) + n) / index_size for n, n_freq in zip(hist, self.vw_freq)]
 
     def __delitem__(self, image_id):
         hist = self[image_id]
@@ -34,9 +35,10 @@ class Index:
         pass
 
     def _update_freq_after_deletion(self, hist):
-        if len(self) == 0:
+        index_size = len(self)
+        if index_size == 0:
             self.vw_freq = []
-        self.vw_freq = [(n_freq * (len(self) + 1) - n) / len(self) for n, n_freq in zip(hist, self.vw_freq)]
+        self.vw_freq = [(n_freq * (index_size + 1) - n) / index_size for n, n_freq in zip(hist, self.vw_freq)]
 
     @abc.abstractmethod
     def __getitem__(self, image_id):
