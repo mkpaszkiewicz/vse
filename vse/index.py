@@ -1,5 +1,5 @@
 import abc
-from vse.error import *
+from vse.error import NoImageError, DuplicatedImageError
 
 
 class Index:

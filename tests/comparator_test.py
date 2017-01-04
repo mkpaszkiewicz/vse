@@ -1,6 +1,6 @@
 import cv2
 import unittest
-from unittest.mock import *
+from unittest.mock import Mock, patch, call
 from vse.comparator import *
 from vse.comparator import cosine_angle
 

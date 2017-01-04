@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import *
+from unittest.mock import Mock, patch, mock_open
 
 from vse import *
 

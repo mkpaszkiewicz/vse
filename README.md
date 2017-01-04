@@ -10,7 +10,7 @@ Package requires [OpenCV](http://www.opencv.org). To install it I highly recomme
 
 Run below commands in terminal:
 ```
-$ conda create -n opencv numpy scipy python=3
+$ conda create -n opencv numpy python=3
 $ source activate opencv
 $ conda install -c https://conda.binstar.org/menpo opencv3
 ```

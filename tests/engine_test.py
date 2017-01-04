@@ -1,7 +1,7 @@
 import unittest
-from unittest.mock import *
+from unittest.mock import Mock, patch
 
-from vse import *
+from vse import VisualSearchEngine, BagOfVisualWords
 
 
 class VisualSearchEngineTest(unittest.TestCase):

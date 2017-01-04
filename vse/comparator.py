@@ -17,7 +17,7 @@ __all__ = ['HistComparator',
 
 
 class HistComparator(metaclass=ABCMeta):
-    REVERSED = False
+    reversed = False
 
     @abstractmethod
     def compare(self, h1, h2):
@@ -26,7 +26,7 @@ class HistComparator(metaclass=ABCMeta):
 
 
 class Correlation(HistComparator):
-    REVERSED = True
+    reversed = True
 
     def compare(self, h1, h2):
         return cv2.compareHist(h1, h2, cv2.HISTCMP_CORREL)
@@ -38,7 +38,7 @@ class ChiSquared(HistComparator):
 
 
 class Intersection(HistComparator):
-    REVERSED = True
+    reversed = True
 
     def compare(self, h1, h2):
         return cv2.compareHist(h1, h2, cv2.HISTCMP_INTERSECT)
@@ -70,7 +70,7 @@ class Euclidean(HistComparator):
 
 
 class CosineAngle(HistComparator):
-    REVERSED = True
+    reversed = True
 
     def compare(self, h1, h2):
         return cosine_angle(h1, h2)

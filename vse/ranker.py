@@ -6,7 +6,7 @@ from vse.utils import normalize
 
 __all__ = ['Ranker',
            'SimpleRanker',
-           'WeightingRanker'
+           'WeighingRanker'
            ]
 
 
@@ -31,8 +31,12 @@ class Ranker(metaclass=ABCMeta):
         """Ranks index items by similarity to query_hist. Returns list of tuples: (image_id, diff_ratio)."""
         pass
 
+    def _rank_best_results(self, items, n, diff_ratio_function):
+        results = [(image_id, diff_ratio_function(hist)) for image_id, hist in items]
+        return self._n_best_results(results, n)
+
     def _n_best_results(self, results, n):
-        if self.hist_comparator.REVERSED:
+        if self.hist_comparator.reversed:
             function = heapq.nlargest
         else:
             function = heapq.nsmallest
@@ -44,21 +48,24 @@ class SimpleRanker(Ranker):
         Ranker.__init__(self, hist_comparator)
 
     def rank(self, query_hist, items, n, freq_vector=None):
-        results = [(image_id, self.hist_comparator.compare(hist, query_hist)) for image_id, hist in items]
-        return self._n_best_results(results, n)
+
+        def diff_ratio_function(hist):
+            return self.hist_comparator.compare(hist, query_hist)
+
+        return self._rank_best_results(items, n, diff_ratio_function)
 
 
-class WeightingRanker(Ranker):
-    def __init__(self, hist_comparator, query_weight=tfidf, item_weight=tfidf):
+class WeighingRanker(Ranker):
+    def __init__(self, hist_comparator, query_weigh_function=tfidf, item_weigh_function=tfidf):
         Ranker.__init__(self, hist_comparator)
-        self.query_weight = query_weight
-        self.item_weight = item_weight
+        self.query_weigh_function = query_weigh_function
+        self.item_weigh_function = item_weigh_function
 
     def rank(self, query_hist, items, n, freq_vector):
-        results = []
-        weighted_query_hist = normalize(self.query_weight(query_hist, freq_vector))
-        for image_id, hist in items:
-            weighted_item_hist = normalize(self.item_weight(hist, freq_vector))
-            diff_ratio = self.hist_comparator.compare(weighted_item_hist, weighted_query_hist)
-            results.append((image_id, diff_ratio))
-        return self._n_best_results(results, n)
+        weighted_query_hist = normalize(self.query_weigh_function(query_hist, freq_vector))
+
+        def diff_ratio_function(hist):
+            weighted_item_hist = normalize(self.item_weigh_function(hist, freq_vector))
+            return self.hist_comparator.compare(weighted_item_hist, weighted_query_hist)
+
+        return self._rank_best_results(items, n, diff_ratio_function)
